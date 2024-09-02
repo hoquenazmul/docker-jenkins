@@ -1,32 +1,51 @@
 pipeline {
     agent {
-        node { label 'PYTHON_DOCKER_AGENT' }
+        node { label 'TEST_AGENT_DOCKER' }
     }
-    triggers {
-        pollSCM '* * * * *'
+
+    // triggers {
+    //     pollSCM '* * * * *'
+    // }
+
+    environment {
+        APP_VERSION = '3.2.5'
     }
+
+    parameters {
+        string(name: 'NODE', description: 'Node Agent', defaultValue: 'TEST_AGENT_DOCKER')
+        choice(name: 'ENVIRONMENT', description: 'Application Enviroment', choices: ['dev', 'qa', 'uat', 'prod'])
+        booleanParam(name: 'TEST_EXECUTION', description: 'Execute Tests', defaultValue: true)
+    }
+
     stages {
         stage('Build') {
             steps {
-                echo "Installing app dependencies..."
-                sh '''
-                cd demo-app
-                pip install -r requirements.txt
-                '''
+                echo "bulding app with build id ${BUILD_ID}"
+                script {
+                    cd demo-app
+                    pip install -r requirements.txt
+                }
             }
         }
+
         stage('Test') {
+            echo "testing app version# ${APP_VERSION}"
+            when {
+                expression {
+                    params.TEST_EXECUTION
+                }
+            }
             steps {
-                echo "Running app..."
                 sh '''
                 cd demo-app
                 python3 app.py
                 '''
             }
         }
+        
         stage('Deploy') {
             steps {
-                echo 'Deploying app...'
+                echo 'deploying app in ${params.ENVIRONMENT}'
                 sh '''
                 echo "deployment completed..."
                 '''
