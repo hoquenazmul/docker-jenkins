@@ -29,20 +29,20 @@ pipeline {
         }
 
         stage('Test') {
-            echo "testing app version# ${APP_VERSION}"
             when {
                 expression {
                     params.TEST_EXECUTION
                 }
             }
             steps {
+                echo "testing app version# ${APP_VERSION}"
                 sh '''
                 cd demo-app
                 python3 app.py
                 '''
             }
         }
-        
+
         stage('Deploy') {
             steps {
                 echo 'deploying app in ${params.ENVIRONMENT}'
